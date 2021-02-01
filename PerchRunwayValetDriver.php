@@ -67,6 +67,7 @@ class PerchRunwayValetDriver extends BasicValetDriver
 
         return $sitePath . '/' . $uri;
     }
+
     protected function isPerchRunway($sitePath, $folder)
     {
         return file_exists($sitePath . '/' . $folder . $this->start);
