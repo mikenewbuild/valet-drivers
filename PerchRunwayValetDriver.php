@@ -62,10 +62,10 @@ class PerchRunwayValetDriver extends BasicValetDriver
     protected function staticFilePath($sitePath, $uri)
     {
         if (strpos($this->folder, 'public') !== false) {
-            return $sitePath . '/public/' . $uri;
+            return $sitePath . '/public' . $uri;
         }
 
-        return $sitePath . '/' . $uri;
+        return $sitePath . $uri;
     }
 
     protected function isPerchRunway($sitePath, $folder)
