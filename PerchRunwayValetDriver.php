@@ -2,11 +2,13 @@
 
 class PerchRunwayValetDriver extends BasicValetDriver
 {
-    protected $candidates = ['perch', 'cms', 'public/perch', 'public/cms'];
+    protected $publicFolder = '/public';
 
     protected $start = '/core/runway/start.php';
 
-    protected $folder = '';
+    protected $perchFolders = ['/perch', '/cms'];
+
+    protected $perchFolder = '';
 
     /**
      * Determine if the driver serves the request.
@@ -18,13 +20,13 @@ class PerchRunwayValetDriver extends BasicValetDriver
      */
     public function serves($sitePath, $siteName, $uri)
     {
-        foreach ($this->candidates as $folder) {
-            if ($this->isPerchRunway($sitePath, $folder)) {
-                $this->folder = $folder;
+        foreach ($this->perchFolders as $perchFolder) {
+            if ($this->isPerchRunway($sitePath, $perchFolder)) {
+                $this->perchFolder = $perchFolder;
             }
         }
 
-        return $this->folder !== '';
+        return $this->perchFolder !== '';
     }
 
     /**
@@ -37,13 +39,17 @@ class PerchRunwayValetDriver extends BasicValetDriver
      */
     public function isStaticFile($sitePath, $siteName, $uri)
     {
-        $staticFilePath = $this->staticFilePath($sitePath, $uri);
+        $staticFilePath = $sitePath . $this->publicFolder . $uri;
 
-        if (file_exists($staticFilePath)) {
-            return $staticFilePath;
+        if (is_dir($staticFilePath)) {
+            return false;
         }
 
-        return false;
+        if (!file_exists($staticFilePath)) {
+            return false;
+        }
+
+        return $staticFilePath;
     }
 
     /**
@@ -56,20 +62,43 @@ class PerchRunwayValetDriver extends BasicValetDriver
      */
     public function frontControllerPath($sitePath, $siteName, $uri)
     {
-        return $sitePath . '/' . $this->folder . $this->start;
-    }
-
-    protected function staticFilePath($sitePath, $uri)
-    {
-        if (strpos($this->folder, 'public') !== false) {
-            return $sitePath . '/public' . $uri;
+        if (!$this->inPerchAdmin($uri)) {
+            return $sitePath . $this->publicFolder . $this->perchFolder . $this->start;
         }
 
-        return $sitePath . $uri;
+        $this->enablePerchAdminForms($uri);
+
+        return $this->perchAdminUri($sitePath, $uri);
+    }
+
+    protected function perchAdminUri($sitePath, $uri)
+    {
+        $adminUri = $sitePath . $this->publicFolder . $uri;
+
+        if (strpos($adminUri, 'index.php') === false) {
+            $adminUri = $adminUri . '/index.php';
+        }
+
+        return $adminUri;
+    }
+
+    protected function inPerchAdmin($uri)
+    {
+        return $this->stringStartsWith($uri, $this->perchFolder);
+    }
+
+    protected function stringStartsWith($haystack, $needle)
+    {
+        return substr($haystack, 0, strlen($needle)) === $needle;
+    }
+
+    protected function enablePerchAdminForms($uri)
+    {
+        $_SERVER['SCRIPT_NAME'] = $uri;
     }
 
     protected function isPerchRunway($sitePath, $folder)
     {
-        return file_exists($sitePath . '/' . $folder . $this->start);
+        return file_exists($sitePath . $this->publicFolder . $folder . $this->start);
     }
 }
