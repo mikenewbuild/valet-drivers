@@ -68,18 +68,7 @@ class PerchRunwayValetDriver extends BasicValetDriver
 
         $this->enablePerchAdminForms($uri);
 
-        return $this->perchAdminUri($sitePath, $uri);
-    }
-
-    protected function perchAdminUri($sitePath, $uri)
-    {
-        $adminUri = $sitePath . $this->publicFolder . $uri;
-
-        if (strpos($adminUri, 'index.php') === false) {
-            $adminUri = $adminUri . '/index.php';
-        }
-
-        return $adminUri;
+        return $sitePath . $this->publicFolder . $uri;
     }
 
     protected function inPerchAdmin($uri)
